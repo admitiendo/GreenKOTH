@@ -2,7 +2,7 @@ package net.multylands.koth.listeners;
 
 
 import net.multylands.koth.GreenKOTH;
-import net.multylands.koth.object.TopArea;
+import net.multylands.koth.object.Koth;
 import net.multylands.koth.utils.LocationUtils;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -21,15 +21,31 @@ public class LocationListener implements Listener {
     public void onAreaEnter(PlayerMoveEvent event) {
         Player player = event.getPlayer();
         Location playerLoc = player.getLocation();
-
         boolean isOnTop = false;
-        TopArea topArea = null;
-        for (TopArea topAreaFromLoop : GreenKOTH.TopAreas.values()) {
+        Koth topArea = null;
+
+        Koth current = GreenKOTH.current;
+
+        if (!GreenKOTH.currentTimer.isKothActive()) {
+            return;
+        }
+
+        for (Koth topAreaFromLoop : GreenKOTH.kothList.values()) {
             Location corner1 = topAreaFromLoop.getFirstCorner();
             Location corner2 = topAreaFromLoop.getSecondCorner();
-            if (!LocationUtils.checkIfIsInBetweenLocations(corner1, corner2, playerLoc)) {
-                continue;
+
+            isOnTop = true;
+            topArea = topAreaFromLoop;
+            if (LocationUtils.checkIfIsInBetweenLocations(corner1, corner2, playerLoc)) {
+                current.setKingUUID(player.getUniqueId().toString());
             }
+            break;
+        }
+
+        for (Koth topAreaFromLoop : GreenKOTH.kothList.values()) {
+            Location corner1 = topAreaFromLoop.getFirstCorner();
+            Location corner2 = topAreaFromLoop.getSecondCorner();
+
             isOnTop = true;
             topArea = topAreaFromLoop;
             break;
@@ -38,9 +54,10 @@ public class LocationListener implements Listener {
         if (!isOnTop) {
             return;
         }
+
         String UUID = player.getUniqueId().toString();
         topArea.setKingUUID(UUID);
-        GreenKOTH.TopAreas.put(topArea.getID(), topArea);
+        GreenKOTH.kothList.put(topArea.getID(), topArea);
     }
 
     @EventHandler
@@ -49,7 +66,7 @@ public class LocationListener implements Listener {
         String playerUUID = player.getUniqueId().toString();
         Location playerLoc = player.getLocation();
 
-        for (TopArea topAreaFromLoop : GreenKOTH.TopAreas.values()) {
+        for (Koth topAreaFromLoop : GreenKOTH.kothList.values()) {
             Location corner1 = topAreaFromLoop.getFirstCorner();
             Location corner2 = topAreaFromLoop.getSecondCorner();
             if (!topAreaFromLoop.isThereAKing()) {
@@ -62,7 +79,7 @@ public class LocationListener implements Listener {
                 continue;
             }
             topAreaFromLoop.setKingUUID(null);
-            GreenKOTH.TopAreas.put(topAreaFromLoop.getID(), topAreaFromLoop);
+            GreenKOTH.kothList.put(topAreaFromLoop.getID(), topAreaFromLoop);
         }
     }
 }

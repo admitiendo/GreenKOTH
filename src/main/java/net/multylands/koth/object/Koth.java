@@ -1,14 +1,17 @@
 package net.multylands.koth.object;
 
+import net.multylands.koth.GreenKOTH;
+import net.multylands.koth.utils.chat.CC;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
-public class TopArea {
+public class Koth {
     public String ID;
     public Location corner1;
     public Location corner2;
     public String kingUUID = null;
 
-    public TopArea(Location corner1, Location corner2, String ID) {
+    public Koth(Location corner1, Location corner2, String ID) {
         this.corner1 = corner1;
         this.corner2 = corner2;
         this.ID = ID;
@@ -24,6 +27,7 @@ public class TopArea {
 
     public void setKingUUID(String kingUUID) {
         this.kingUUID = kingUUID;
+        CC.broadcast(CC.translate(Bukkit.getPlayer(kingUUID).getDisplayName() + " is capping koth " + ID));
     }
 
     public void setNoKing() {
@@ -40,5 +44,10 @@ public class TopArea {
 
     public String getID() {
         return ID;
+    }
+
+    public void startKoth() {
+        Bukkit.getScheduler().runTaskTimer(GreenKOTH.get(), () -> {
+        }, 1, 2);
     }
 }
