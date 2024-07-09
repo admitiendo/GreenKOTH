@@ -17,11 +17,11 @@ public class Koth {
         this.ID = ID;
     }
 
-    public Location getFirstCorner() {
+    public Location getCorner1() {
         return corner1;
     }
 
-    public Location getSecondCorner() {
+    public Location getCorner2() {
         return corner2;
     }
 
