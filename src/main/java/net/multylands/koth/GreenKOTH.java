@@ -3,7 +3,6 @@ package net.multylands.koth;
 import net.multylands.koth.commands.KOTHCommand;
 import net.multylands.koth.listeners.LocationListener;
 import net.multylands.koth.object.Koth;
-import net.multylands.koth.timer.KOTHTimer;
 import net.multylands.koth.utils.ConfigUtils;
 import net.multylands.koth.utils.commands.CommandFramework;
 import org.bukkit.Bukkit;
@@ -35,7 +34,6 @@ public final class GreenKOTH extends JavaPlugin {
     public static HashMap<String, CommandExecutor> commandExecutors = new HashMap<>();
 
     public static Koth current;
-    public static KOTHTimer currentTimer;
 
     @Override
     public void onEnable() {

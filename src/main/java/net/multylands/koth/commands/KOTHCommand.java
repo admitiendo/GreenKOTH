@@ -2,7 +2,6 @@ package net.multylands.koth.commands;
 
 import net.multylands.koth.GreenKOTH;
 import net.multylands.koth.object.Koth;
-import net.multylands.koth.timer.KOTHTimer;
 import net.multylands.koth.utils.chat.CC;
 import net.multylands.koth.utils.commands.Command;
 import net.multylands.koth.utils.commands.CommandArgs;
@@ -149,44 +148,6 @@ public class KOTHCommand {
             inGameOnly = true,
             usage = "/koth start <Koth>")
     public void startKoth(CommandArgs args) {
-        Player player = args.getPlayer();
 
-        if (GreenKOTH.currentTimer.isKothActive()) {
-            player.sendMessage(CC.translate("&cThe koth &f" + GreenKOTH.current.ID + " &cis currently active!"));
-            return;
-        }
-
-        String kothname = args.getArgs(1);
-
-        if (!plugin.areasConfig.contains(kothname)) {
-            player.sendMessage(CC.translate("&cThe koth &f" + kothname + " does not exist!"));
-            player.sendMessage(CC.translate(plugin.languageConfig.getString("admin.area-list.list")));
-            String inactiveFormat = plugin.languageConfig.getString("admin.area-list.list-format.inactive");
-            String activeFormat = plugin.languageConfig.getString("admin.area-list.list-format.active");
-            for (String areaName : plugin.areasConfig.getKeys(false)) {
-                if (plugin.areasConfig.getLocation(areaName + ".pos1") == null
-                        || plugin.areasConfig.getLocation(areaName + ".pos2") == null) {
-                    player.sendMessage(CC.translate(inactiveFormat.replace("%area%", areaName)));
-                    continue;
-                }
-                player.sendMessage(CC.translate(activeFormat.replace("%area%", areaName)));
-            }
-            return;
-        }
-
-        Location loc1 = plugin.areasConfig.getLocation(kothname + ".pos1");
-        Location loc2 = plugin.areasConfig.getLocation(kothname + ".pos2");
-
-        Koth koth = new Koth(loc1, loc2, kothname);
-        KOTHTimer timer = new KOTHTimer(GreenKOTH.get(), koth);
-        koth.startKoth();
-        timer.setKothActive(true);
-        timer.startTimer();
-
-        GreenKOTH.currentTimer = timer;
-        GreenKOTH.current = koth;
-
-
-        player.sendMessage(CC.translate(""));
     }
 }
