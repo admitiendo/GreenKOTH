@@ -14,9 +14,11 @@ import java.util.Map;
 
 public class KothManager {
     FileConfiguration areas = GreenKOTH.get().areasConfig;
-    ;
 
-    List<Koth> koths = new ArrayList<>();
+    public List<Koth> koths = new ArrayList<>();
+
+    public Koth currentActive;
+    public boolean thereIsKoth;
 
     public Koth getKothByID(String id) {
         for (Koth k : koths) {
@@ -31,6 +33,7 @@ public class KothManager {
         areas.set("Koths", k.getID());
         areas.set("Koths." + k.getID() + ".corner1", k.getCorner1());
         areas.set("Koths." + k.getID() + ".corner2", k.getCorner2());
+        areas.set("Koths." + k.getID() + ".capTime", k.getCapTime());
         areas.save(GreenKOTH.get().areasFile);
     }
 
@@ -42,9 +45,31 @@ public class KothManager {
             String id = section.getString(entry.getKey());
             Location corner1 = section.getLocation(id + ".corner1");
             Location corner2 = section.getLocation(id + ".corner2");
+            long capTime = section.getLong(id + ".capTime");
 
-            toReturn.add(new Koth(corner1, corner2, id));
+            toReturn.add(new Koth(corner1, corner2, id, capTime));
         }
         return toReturn;
+    }
+
+    public void setActiveKoth(Koth koth) {
+        currentActive = koth;
+        thereIsKoth = true;
+    }
+
+    public void disableKoth() {
+        thereIsKoth = false;
+        currentActive = null;
+    }
+
+    public boolean isThereAKoth() {
+        return thereIsKoth;
+    }
+
+    public Koth getCurrentKoth() {
+        if (currentActive != null) {
+            return currentActive;
+        }
+        return null;
     }
 }

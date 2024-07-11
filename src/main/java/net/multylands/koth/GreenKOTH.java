@@ -1,9 +1,12 @@
 package net.multylands.koth;
 
 import net.multylands.koth.commands.KOTHCommand;
+import net.multylands.koth.listeners.KothCreationListener;
 import net.multylands.koth.listeners.LocationListener;
+import net.multylands.koth.manager.KothManager;
 import net.multylands.koth.object.Koth;
 import net.multylands.koth.utils.ConfigUtils;
+import net.multylands.koth.utils.chat.CC;
 import net.multylands.koth.utils.commands.CommandFramework;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -33,13 +36,24 @@ public final class GreenKOTH extends JavaPlugin {
     public static BukkitScheduler scheduler = Bukkit.getScheduler();
     public static HashMap<String, CommandExecutor> commandExecutors = new HashMap<>();
 
+    public static KothManager kothManager = new KothManager();
+
     public static Koth current;
 
     @Override
     public void onEnable() {
         createConfigs();
 
+        if (!kothManager.getKothsFromFile().isEmpty()) {
+            kothManager.koths.addAll(kothManager.getKothsFromFile());
+        } else {
+            Bukkit.getConsoleSender().sendMessage(CC.translate("&cCouldn't load koths, make sure to create atleast 1 koth."));
+            Bukkit.getPluginManager().disablePlugin(this);
+        }
+
+
         this.getServer().getPluginManager().registerEvents(new LocationListener(this), this);
+        this.getServer().getPluginManager().registerEvents(new KothCreationListener(), this);
         CommandFramework framework = new CommandFramework(this);
         framework.registerCommands(new KOTHCommand());
         // Plugin startup logic
@@ -80,7 +94,6 @@ public final class GreenKOTH extends JavaPlugin {
             configUtils.addMissingKeysAndValues(getConfig(), configFileName);
             configUtils.addMissingKeysAndValues(areasConfig, areasFileName);
             configUtils.addMissingKeysAndValues(languageConfig, languageFileName);
-            loadAreas();
         } catch (IOException | InvalidConfigurationException e) {
             e.printStackTrace();
         }
@@ -99,20 +112,6 @@ public final class GreenKOTH extends JavaPlugin {
         areasFile = new File(getDataFolder(), areasFileName);
         areasConfig = YamlConfiguration.loadConfiguration(areasFile);
         kothList.clear();
-        loadAreas();
-    }
-
-    public void loadAreas() {
-        for (String areaID : areasConfig.getKeys(false)) {
-            if (areasConfig.getLocation(areaID + ".pos1") == null
-                    || areasConfig.getLocation(areaID + ".pos2") == null) {
-                continue;
-            }
-            Location loc1 = areasConfig.getLocation(areaID + ".pos1");
-            Location loc2 = areasConfig.getLocation(areaID + ".pos2");
-            Koth koth = new Koth(loc1, loc2, areaID);
-            kothList.put(areaID, koth);
-        }
     }
 
     public void reloadLanguageConfig() {

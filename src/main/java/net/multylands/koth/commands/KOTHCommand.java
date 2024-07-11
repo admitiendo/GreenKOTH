@@ -1,14 +1,26 @@
 package net.multylands.koth.commands;
 
 import net.multylands.koth.GreenKOTH;
+import net.multylands.koth.manager.KothCreationManager;
+import net.multylands.koth.manager.KothManager;
 import net.multylands.koth.object.Koth;
 import net.multylands.koth.utils.chat.CC;
 import net.multylands.koth.utils.commands.Command;
 import net.multylands.koth.utils.commands.CommandArgs;
+import net.wesjd.anvilgui.AnvilGUI;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.checkerframework.checker.units.qual.K;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 public class KOTHCommand {
     GreenKOTH plugin;
@@ -25,106 +37,37 @@ public class KOTHCommand {
         }
     }
 
-    @Command(name = "koth.arealist",
+    @Command(name = "koth.create",
             permission = "greenkoth.admin",
-            description = "GreenKoth Area list",
+            description = "GreenKoth create koth command",
             inGameOnly = true,
-            usage = "/koth arealist")
-    public void areaListCommand(CommandArgs args) {
+            usage = "/koth create")
+    public void createCommand(CommandArgs args) {
+        ItemStack item = new ItemStack(Material.BEACON);
+        ItemMeta meta = item.getItemMeta();
+        meta.addEnchant(Enchantment.ARROW_FIRE, 2, false);
+        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        meta.setLore(Arrays.asList(CC.translate("&bInput the koth name to proceed with the second step.")));
+        item.setItemMeta(meta);
+
         Player player = args.getPlayer();
-
-        if (plugin.areasConfig.getKeys(false).isEmpty()) {
-            player.sendMessage(CC.translate(plugin.languageConfig.getString("admin.area-list.no-areas-available")));
-            return;
-        }
-        player.sendMessage(CC.translate(languageConfig.getString("admin.area-list.meaning")));
-        player.sendMessage(CC.translate(plugin.languageConfig.getString("admin.area-list.list")));
-        String inactiveFormat = plugin.languageConfig.getString("admin.area-list.list-format.inactive");
-        String activeFormat = plugin.languageConfig.getString("admin.area-list.list-format.active");
-        for (String areaName : plugin.areasConfig.getKeys(false)) {
-            if (plugin.areasConfig.getLocation(areaName + ".pos1") == null
-                    || plugin.areasConfig.getLocation(areaName + ".pos2") == null) {
-                player.sendMessage(CC.translate(inactiveFormat.replace("%area%", areaName)));
-                continue;
-            }
-            player.sendMessage(CC.translate(activeFormat.replace("%area%", areaName)));
-        }
-    }
-
-    @Command(name = "koth.createarea",
-            permission = "greenkoth.admin",
-            description = "GreenKoth create area command",
-            inGameOnly = true,
-            usage = "/koth createarea")
-    public void createArea(CommandArgs args) {
-        Player player = args.getPlayer();
-
-
-        String areaName = args.getArgs(0);
-        if (plugin.areasConfig.contains(areaName)) {
-            player.sendMessage(CC.translate(plugin.languageConfig.getString("admin.create-area.already-exists")));
-            return;
-        }
-        plugin.areasConfig.set(areaName + ".isnew", true);
-        plugin.saveAreasConfig();
-        player.sendMessage(CC.translate(plugin.languageConfig.getString("admin.create-area.success").replace("%area%", areaName)));
-
-    }
-
-    @Command(name = "koth.deletearea",
-            permission = "greenkoth.admin",
-            description = "GreenKoth delete area command",
-            inGameOnly = true,
-            usage = "/koth deletearea")
-    public void deleteArea(CommandArgs args) {
-        Player player = args.getPlayer();
-
-        String areaName = args.getArgs(0);
-        if (!plugin.areasConfig.contains(areaName)) {
-            player.sendMessage(CC.translate(plugin.languageConfig.getString("admin.delete-area.doesnt-exists")));
-            return;
-        }
-        plugin.areasConfig.set(areaName, null);
-        plugin.saveAreasConfig();
-        plugin.reloadAreasConfig();
-        player.sendMessage(CC.translate(plugin.languageConfig.getString("admin.delete-area.success").replace("%area%", areaName)));
-
-    }
-
-    @Command(name = "koth.setpos",
-            permission = "greenkoth.admin",
-            description = "GreenKoth set pos command",
-            inGameOnly = true,
-            usage = "/koth setpos")
-    public void setPos(CommandArgs args) {
-        Player player = args.getPlayer();
-
-
-        String topAreaName = args.getArgs(0);
-        String pos = args.getArgs(1).toLowerCase();
-        if (!plugin.areasConfig.contains(topAreaName)) {
-            player.sendMessage(CC.translate(plugin.languageConfig.getString("admin.set-pos.wrong-area")));
-            return;
-        }
-        if (!pos.equals("pos1") && !pos.equals("pos2")) {
-            player.sendMessage(CC.translate(plugin.languageConfig.getString("admin.set-pos.wrong-pos")));
-            return;
-        }
-        plugin.areasConfig.set(topAreaName + "." + pos, player.getLocation());
-        //just removing the temporary value below
-        plugin.areasConfig.set(topAreaName + ".isnew", null);
-        plugin.saveAreasConfig();
-        player.sendMessage(CC.translate(plugin.languageConfig.getString("admin.set-pos.success").replace("%pos%", pos)));
-
-        if (plugin.areasConfig.getLocation(topAreaName + ".pos1") == null
-                || plugin.areasConfig.getLocation(topAreaName + ".pos2") == null) {
-            return;
-        }
-        Location loc1 = plugin.areasConfig.getLocation(topAreaName + ".pos1");
-        Location loc2 = plugin.areasConfig.getLocation(topAreaName + ".pos2");
-        Koth area = new Koth(loc1, loc2, topAreaName);
-        GreenKOTH.kothList.put(topAreaName, area);
-        player.sendMessage(CC.translate(plugin.languageConfig.getString("admin.set-pos.area-loaded")));
+        new AnvilGUI.Builder()
+                .interactableSlots(AnvilGUI.Slot.INPUT_LEFT)
+                .itemLeft(item)
+                        .onClose(stateSnapshot -> {
+                    stateSnapshot.getPlayer().sendMessage(CC.translate("&f&L| &BNow select the two corners of the koth."));
+                    new KothCreationManager().secondStepCreation(player, stateSnapshot.getText());
+                }).onClick((slot, stateSnapshot) -> { // Either use sync or async variant, not both
+                    if (slot != AnvilGUI.Slot.OUTPUT) {
+                        return Collections.emptyList();
+                    }
+                    return java.util.List.of();
+                })
+                .preventClose()
+                .text("Name:")
+                .title("Enter the name of the new KOTH.")
+                .plugin(GreenKOTH.get())
+                .open(player);
     }
 
     @Command(name = "koth.reload",
@@ -140,6 +83,26 @@ public class KOTHCommand {
         plugin.reloadLanguageConfig();
         player.sendMessage(CC.translate(plugin.languageConfig.getString("admin.reload.all-config-reloaded")));
 
+        KothManager kothManager = GreenKOTH.kothManager;
+
+
+        if (!kothManager.getKothsFromFile().isEmpty()) {
+           kothManager.koths.addAll(kothManager.getKothsFromFile());
+           player.sendMessage(CC.translate("&f&l| &aLos koths se han cargado con exito!"));
+
+            for (Koth koth : kothManager.koths) {
+                player.sendMessage(CC.translate(
+                        "&f&l| &b" + koth.ID +
+                                " - " + koth.corner1.getBlockX() +
+                                " - " + koth.corner1.getBlockY() +
+                                " - " + koth.corner1.getBlockZ() +
+                                " / " + koth.corner2.getBlockX() +
+                                " - " + koth.corner2.getBlockY() +
+                                " - " + koth.corner2.getBlockZ()));
+            }
+        } else {
+            player.sendMessage(CC.translate("No se han podido cargar los koths, asegurate de crear al menos 1 koth."));
+        }
     }
 
     @Command(name = "koth.start",
