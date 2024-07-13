@@ -9,12 +9,16 @@ import java.io.IOException;
 
 public class Koth {
     public String ID;
-    public long capTime;
+    public int capTime;
     public Location corner1;
     public Location corner2;
     public String kingUUID = null;
 
-    public Koth(Location corner1, Location corner2, String ID, long capTime) {
+    public Koth() {
+
+    }
+
+    public Koth(Location corner1, Location corner2, String ID, int capTime) {
         Location corner1Modified = corner1.clone();
         corner1Modified.setY(corner1.getY() + 3);
         this.corner1 = corner1Modified;
@@ -29,7 +33,18 @@ public class Koth {
         }
     }
 
-    public Long getCapTime() {
+    public Koth build() {
+        return new Koth(corner1, corner2, getID(), getCapTime());
+    }
+    public void setCapTime(int capTime) {
+        this.capTime = capTime;
+    }
+
+    public void setID(String ID) {
+        this.ID = ID;
+    }
+
+    public int getCapTime() {
         return capTime;
     }
 
@@ -39,6 +54,14 @@ public class Koth {
 
     public Location getCorner2() {
         return corner2;
+    }
+
+    public void setCorner1(Location loc) {
+        this.corner1 = loc;
+    }
+
+    public void setCorner2(Location loc) {
+        this.corner1 = loc;
     }
 
     public void setKingUUID(String kingUUID) {
@@ -68,8 +91,23 @@ public class Koth {
                 + getCenterBlock(corner1, corner2).getX() + " "
                 + getCenterBlock(corner1, corner2).getY() + " "
                 + getCenterBlock(corner1, corner2).getZ() + "&7)");
-        Bukkit.getScheduler().runTaskTimer(GreenKOTH.get(), () -> {
-        }, 1, 2);
+        GreenKOTH.kothManager.setActiveKoth(this);
+    }
+
+    public void stop(String reason) {
+        switch (reason) {
+            case "capped": {
+                CC.broadcast("&f&l| &bThe koth " + ID + " has been capped!");
+                CC.broadcast("&f&l| &bCapper: " + Bukkit.getPlayer(kingUUID).getDisplayName());
+                GreenKOTH.kothManager.setActiveKoth(null);
+                break;
+            }
+            case "command": {
+                CC.broadcast("&f&l| &bThe koth " + ID + " has been stopped!");
+                GreenKOTH.kothManager.setActiveKoth(null);
+                break;
+            }
+        }
     }
 
     public Location getCenterBlock(Location c1, Location c2) {

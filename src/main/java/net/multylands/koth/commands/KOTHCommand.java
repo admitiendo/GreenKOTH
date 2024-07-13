@@ -19,12 +19,16 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.checkerframework.checker.units.qual.K;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.UUID;
 
 public class KOTHCommand {
     GreenKOTH plugin;
     FileConfiguration languageConfig = plugin.languageConfig;
+
+    public static KothCreationManager kothCreationManager = new KothCreationManager();
 
     @Command(name = "koth",
             permission = "greenkoth.admin",
@@ -43,31 +47,13 @@ public class KOTHCommand {
             inGameOnly = true,
             usage = "/koth create")
     public void createCommand(CommandArgs args) {
-        ItemStack item = new ItemStack(Material.BEACON);
-        ItemMeta meta = item.getItemMeta();
-        meta.addEnchant(Enchantment.ARROW_FIRE, 2, false);
-        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-        meta.setLore(Arrays.asList(CC.translate("&bInput the koth name to proceed with the second step.")));
-        item.setItemMeta(meta);
-
         Player player = args.getPlayer();
-        new AnvilGUI.Builder()
-                .interactableSlots(AnvilGUI.Slot.INPUT_LEFT)
-                .itemLeft(item)
-                        .onClose(stateSnapshot -> {
-                    stateSnapshot.getPlayer().sendMessage(CC.translate("&f&L| &BNow select the two corners of the koth."));
-                    new KothCreationManager().secondStepCreation(player, stateSnapshot.getText());
-                }).onClick((slot, stateSnapshot) -> { // Either use sync or async variant, not both
-                    if (slot != AnvilGUI.Slot.OUTPUT) {
-                        return Collections.emptyList();
-                    }
-                    return java.util.List.of();
-                })
-                .preventClose()
-                .text("Name:")
-                .title("Enter the name of the new KOTH.")
-                .plugin(GreenKOTH.get())
-                .open(player);
+        if (!kothCreationManager.createList.containsKey(args.getPlayer())) {
+            player.sendMessage(CC.translate("&bPlease type the KOTH name in the chat &Cwithout &bspaces."));
+            kothCreationManager.createList.put(player, new Koth());
+        } else {
+            player.sendMessage(CC.translate("&cYou are already creating a koth."));
+        }
     }
 
     @Command(name = "koth.reload",
@@ -105,12 +91,24 @@ public class KOTHCommand {
         }
     }
 
-    @Command(name = "koth.start",
+    @Command(name = "kothstart",
             permission = "greenkoth.admin",
             description = "GreenKoth start command",
             inGameOnly = true,
-            usage = "/koth start <Koth>")
+            usage = "/kothstart <Koth>")
     public void startKoth(CommandArgs args) {
+        Player player = args.getPlayer();
+        String kothName = args.getArgs(0);
+        if (player.hasPermission("greenkoth.admin")) {
+            if (GreenKOTH.kothManager.koths.contains(GreenKOTH.kothManager.getKothByID(kothName))) {
+                Koth koth = GreenKOTH.kothManager.getKothByID(kothName);
+                if (GreenKOTH.kothManager.isThereAKoth()) {
+                    player.sendMessage(CC.translate("&cThe koth &f" + koth.getID() + " &cis currently active!."));
+                    return;
+                }
 
+                koth.start();
+            }
+        }
     }
 }

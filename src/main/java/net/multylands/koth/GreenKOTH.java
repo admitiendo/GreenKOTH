@@ -19,7 +19,9 @@ import org.bukkit.scheduler.BukkitScheduler;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.UUID;
 
 public final class GreenKOTH extends JavaPlugin {
     public static HashMap<String, Koth> kothList = new HashMap<>();

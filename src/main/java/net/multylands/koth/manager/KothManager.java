@@ -45,7 +45,7 @@ public class KothManager {
             String id = section.getString(entry.getKey());
             Location corner1 = section.getLocation(id + ".corner1");
             Location corner2 = section.getLocation(id + ".corner2");
-            long capTime = section.getLong(id + ".capTime");
+            int capTime = section.getInt(id + ".capTime");
 
             toReturn.add(new Koth(corner1, corner2, id, capTime));
         }
@@ -54,7 +54,7 @@ public class KothManager {
 
     public void setActiveKoth(Koth koth) {
         currentActive = koth;
-        thereIsKoth = true;
+        thereIsKoth = koth != null;
     }
 
     public void disableKoth() {
