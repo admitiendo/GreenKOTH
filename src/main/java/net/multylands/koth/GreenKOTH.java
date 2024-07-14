@@ -38,36 +38,48 @@ public final class GreenKOTH extends JavaPlugin {
     public static BukkitScheduler scheduler = Bukkit.getScheduler();
     public static HashMap<String, CommandExecutor> commandExecutors = new HashMap<>();
 
-    public static KothManager kothManager = new KothManager();
+    public static KothManager kothManager;
 
     public static Koth current;
 
     @Override
     public void onEnable() {
         createConfigs();
-
-        if (!kothManager.getKothsFromFile().isEmpty()) {
-            kothManager.koths.addAll(kothManager.getKothsFromFile());
-        } else {
-            Bukkit.getConsoleSender().sendMessage(CC.translate("&cCouldn't load koths, make sure to create atleast 1 koth."));
-            Bukkit.getPluginManager().disablePlugin(this);
-        }
-
-
-        this.getServer().getPluginManager().registerEvents(new LocationListener(this), this);
-        this.getServer().getPluginManager().registerEvents(new KothCreationListener(), this);
+        kothManager = new KothManager();
         CommandFramework framework = new CommandFramework(this);
         framework.registerCommands(new KOTHCommand());
-        // Plugin startup logic
+
+        Bukkit.getPluginManager().registerEvents(new LocationListener(), this);
+        Bukkit.getPluginManager().registerEvents(new KothCreationListener(), this);
+
+        Bukkit.getConsoleSender().sendMessage(CC.translate("&bThe koth list is loading. please wait."));
+        scheduler.runTaskLater(this, new Runnable() {
+            @Override
+            public void run() {
+                if (kothManager.getKothsFromFile() != null) {
+                    kothManager.koths.addAll(kothManager.getKothsFromFile());
+                    Bukkit.getConsoleSender().sendMessage(CC.translate("&bThe KOTH list has loaded!, &7Current koths:"));
+                    for (Koth koth : kothManager.koths) {
+                        Bukkit.getConsoleSender().sendMessage(CC.translate("&f&l| &b" + koth.ID));
+                    }
+                } else {
+                    Bukkit.getConsoleSender().sendMessage(CC.translate("&cCouldn't load koths, make sure to create at least 1 koth."));
+                }
+            }
+        }, 1000);
     }
 
     @Override
     public void onDisable() {
-        // Plugin shutdown logic
+        Bukkit.getConsoleSender().sendMessage(CC.translate("&cGreenKOTH plugin has been disabled!"));
     }
 
     public static GreenKOTH get() {
         return getPlugin(GreenKOTH.class);
+    }
+
+    public FileConfiguration getAreasConfig() {
+        return areasConfig;
     }
 
     private void createConfigs() {
@@ -100,7 +112,6 @@ public final class GreenKOTH extends JavaPlugin {
             e.printStackTrace();
         }
     }
-
 
     public void saveAreasConfig() {
         try {

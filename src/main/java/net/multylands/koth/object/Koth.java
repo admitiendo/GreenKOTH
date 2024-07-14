@@ -4,6 +4,7 @@ import net.multylands.koth.GreenKOTH;
 import net.multylands.koth.utils.chat.CC;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 
 import java.io.IOException;
 
@@ -12,25 +13,17 @@ public class Koth {
     public int capTime;
     public Location corner1;
     public Location corner2;
-    public String kingUUID = null;
+    public Player king;
 
     public Koth() {
 
     }
 
     public Koth(Location corner1, Location corner2, String ID, int capTime) {
-        Location corner1Modified = corner1.clone();
-        corner1Modified.setY(corner1.getY() + 3);
-        this.corner1 = corner1Modified;
+        this.corner1 = corner1;
         this.corner2 = corner2;
         this.ID = ID;
         this.capTime = capTime;
-
-        try {
-            GreenKOTH.kothManager.saveKothToFile(this);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public Koth build() {
@@ -61,24 +54,24 @@ public class Koth {
     }
 
     public void setCorner2(Location loc) {
-        this.corner1 = loc;
+        this.corner2 = loc;
     }
 
-    public void setKingUUID(String kingUUID) {
-        this.kingUUID = kingUUID;
-        CC.broadcast(CC.translate(Bukkit.getPlayer(kingUUID).getDisplayName() + " is capping koth " + ID));
+    public void setKing(Player player) {
+        this.king = player;
+        CC.broadcast(CC.translate(player.getDisplayName() + " &bis capping koth &f" + ID));
     }
 
     public void setNoKing() {
-        this.kingUUID = null;
+        this.king = null;
     }
 
     public boolean isThereAKing() {
-        return !(kingUUID == null);
+        return !(king == null);
     }
 
-    public String getKingUUID() {
-        return kingUUID;
+    public Player getKing() {
+        return king;
     }
 
     public String getID() {
@@ -88,9 +81,9 @@ public class Koth {
     public void start() {
         CC.broadcast("&f&l| &bThe koth " + ID + " has started!");
         CC.broadcast("&f&l| &bLocation: &7(&c"
-                + getCenterBlock(corner1, corner2).getX() + " "
-                + getCenterBlock(corner1, corner2).getY() + " "
-                + getCenterBlock(corner1, corner2).getZ() + "&7)");
+                + getCenterBlock().getX() + " "
+                + getCenterBlock().getY() + " "
+                + getCenterBlock().getZ() + "&7)");
         GreenKOTH.kothManager.setActiveKoth(this);
     }
 
@@ -98,32 +91,35 @@ public class Koth {
         switch (reason) {
             case "capped": {
                 CC.broadcast("&f&l| &bThe koth " + ID + " has been capped!");
-                CC.broadcast("&f&l| &bCapper: " + Bukkit.getPlayer(kingUUID).getDisplayName());
+                assert king != null;
+                CC.broadcast("&f&l| &bCapper: " + king.getName());
                 GreenKOTH.kothManager.setActiveKoth(null);
+                this.setNoKing();
                 break;
             }
             case "command": {
                 CC.broadcast("&f&l| &bThe koth " + ID + " has been stopped!");
                 GreenKOTH.kothManager.setActiveKoth(null);
+                this.setNoKing();
                 break;
             }
         }
     }
 
-    public Location getCenterBlock(Location c1, Location c2) {
-        double x1 = c1.getBlockX();
-        double x2 = c2.getBlockX();
+    public Location getCenterBlock() {
+        double x1 = getCorner1().getBlockX();
+        double x2 = getCorner2().getBlockX();
 
-        double y1 = c1.getBlockY();
-        double y2 = c2.getBlockY();
+        double y1 = getCorner1().getBlockY();
+        double y2 = getCorner2().getBlockY();
 
-        double z1 = c1.getBlockZ();
-        double z2 = c2.getBlockZ();
+        double z1 = getCorner1().getBlockZ();
+        double z2 = getCorner2().getBlockZ();
 
         double centerX = (x1 + x2) / 2;
         double centerY = (y1 + y2) / 2;
         double centerZ = (z1 + z2) / 2;
 
-        return new Location(c1.getWorld(), centerX, centerY, centerZ);
+        return new Location(getCorner2().getWorld(), centerX, centerY, centerZ);
     }
 }

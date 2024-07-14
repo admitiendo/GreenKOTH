@@ -5,11 +5,12 @@ import net.multylands.koth.commands.KOTHCommand;
 import net.multylands.koth.manager.KothCreationManager;
 import net.multylands.koth.object.Koth;
 import net.multylands.koth.utils.chat.CC;
-import net.wesjd.anvilgui.AnvilGUI;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Interaction;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -22,6 +23,7 @@ import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.UUID;
@@ -36,7 +38,7 @@ public class KothCreationListener implements Listener {
     private ArrayList<Player> creationWand2 = new ArrayList<>();
 
     @EventHandler
-    public void onMessage(AsyncPlayerChatEvent event) {
+    public void onMessage(AsyncPlayerChatEvent event) throws IOException {
         Player player = event.getPlayer();
         if (player.hasPermission("greenkoth.admin")) {
             if (KOTHCommand.kothCreationManager.createList.containsKey(player)) {
@@ -48,6 +50,7 @@ public class KothCreationListener implements Listener {
                 if (!event.getMessage().contains(" ")) {
                     player.sendMessage(CC.translate("&aPerfect!, the KOTH name is: &f" + event.getMessage()));
                     Koth k = KOTHCommand.kothCreationManager.createList.get(player);
+                    koth = k;
                     k.setID(event.getMessage());
                     KOTHCommand.kothCreationManager.kothNameSetted.add(player);
                     event.setCancelled(true);
@@ -77,7 +80,10 @@ public class KothCreationListener implements Listener {
                         event.setCancelled(true);
                         int time = Integer.parseInt(event.getMessage());
 
+                        player.getWorld().playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 2.0f, 2.0f);
                         koth.setCapTime(time);
+                        player.sendMessage(CC.translate("&bThe KOTH &f" + koth.getID() + " &bhas been successfully created!"));
+                        GreenKOTH.kothManager.saveKothToFile(koth.build());
                     } else {
                         event.setCancelled(true);
                         player.sendMessage(CC.translate("&cThe KOTH cap time must be numbers only. &7&O(Seconds)"));
@@ -96,6 +102,7 @@ public class KothCreationListener implements Listener {
         if (player.hasPermission("greenkoth.admin")) {
             if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
                 if (creationWand1.contains(player)) {
+                    event.setCancelled(true);
                     if (!event.hasItem()) {
                         return;
                     }
@@ -105,8 +112,6 @@ public class KothCreationListener implements Listener {
                     if (!event.getItem().equals(kothWand)) {
                         return;
                     }
-
-                    ItemStack item = event.getItem();
 
                     int x = event.getClickedBlock().getX();
                     int y = event.getClickedBlock().getY();
@@ -119,8 +124,8 @@ public class KothCreationListener implements Listener {
 
                     creationWand2.add(player);
                     creationWand1.remove(player);
-                } else if (creationWand1.contains(player)) {
-
+                } else if (creationWand2.contains(player)) {
+                    event.setCancelled(true);
                     if (!event.hasItem()) {
                         return;
                     }
@@ -140,6 +145,7 @@ public class KothCreationListener implements Listener {
 
                     koth.setCorner2(event.getClickedBlock().getLocation());
 
+                    KOTHCommand.kothCreationManager.createList.remove(player);
                     creationWand2.remove(player);
                 }
             } else if (event.getAction() == Action.RIGHT_CLICK_AIR) {
@@ -150,6 +156,10 @@ public class KothCreationListener implements Listener {
                 assert event.getItem().getItemMeta() != null;
 
                 if (!event.getItem().equals(kothWand)) {
+                    return;
+                }
+
+                if (!player.isSneaking()) {
                     return;
                 }
 

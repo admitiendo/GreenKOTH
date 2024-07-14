@@ -16,25 +16,25 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitScheduler;
 
 public class LocationListener implements Listener {
-    GreenKOTH plugin;
-
     BukkitScheduler scheduler = GreenKOTH.get().getServer().getScheduler();
-
-    public LocationListener(GreenKOTH plugin) {
-        this.plugin = plugin;
-    }
 
     @EventHandler
     public void onAreaEnter(PlayerMoveEvent event) {
-        KothManager manager = GreenKOTH.kothManager;
-        if (manager.isThereAKoth()) {
+        if (GreenKOTH.kothManager.isThereAKoth()) {
+            KothManager manager = GreenKOTH.kothManager;
             Koth koth = manager.getCurrentKoth();
             Player player = event.getPlayer();
             if (LocationUtils.checkIfIsInBetweenLocations(koth.corner1, koth.corner2, player.getLocation())) {
-                koth.setKingUUID(player.getUniqueId().toString());
+                if (koth.isThereAKing()) {
+                    return;
+                }
+
+                koth.setKing(player);
+
                 scheduler.runTaskTimer(GreenKOTH.get(), () -> {
                     if (LocationUtils.checkIfIsInBetweenLocations(koth.corner1, koth.corner2, player.getLocation())) {
                         player.sendMessage(CC.translate("&bYou capped " + koth.getID() + "!"));
+                        koth.stop("capped");
                     } else {
                         koth.setNoKing();
                     }
@@ -49,8 +49,12 @@ public class LocationListener implements Listener {
         if (manager.isThereAKoth()) {
             Koth koth = manager.getCurrentKoth();
             Player player = event.getPlayer();
-            if (!LocationUtils.checkIfIsInBetweenLocations(koth.corner1, koth.corner2, player.getLocation())) {
-                koth.setNoKing();
+            if (koth.isThereAKing()) {
+                if (!LocationUtils.checkIfIsInBetweenLocations(koth.corner1, koth.corner2, player.getLocation())) {
+                    if (koth.getKing() == player) {
+                        koth.setNoKing();
+                    }
+                }
             }
         }
     }
@@ -61,8 +65,10 @@ public class LocationListener implements Listener {
         if (manager.isThereAKoth()) {
             Koth koth = manager.getCurrentKoth();
             Player player = event.getPlayer();
-            if (koth.getKingUUID().equals(player.getUniqueId().toString())) {
-                koth.setNoKing();
+            if (koth.isThereAKing()) {
+                if (koth.getKing() == player) {
+                    koth.setNoKing();
+                }
             }
         }
     }
@@ -73,8 +79,10 @@ public class LocationListener implements Listener {
         if (manager.isThereAKoth()) {
             Koth koth = manager.getCurrentKoth();
             Player player = event.getEntity();
-            if (koth.getKingUUID().equals(player.getUniqueId().toString())) {
-                koth.setNoKing();
+            if (koth.isThereAKing()) {
+                if (koth.getKing() == player) {
+                    koth.setNoKing();
+                }
             }
         }
     }

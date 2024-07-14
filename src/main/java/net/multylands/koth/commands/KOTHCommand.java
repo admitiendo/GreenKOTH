@@ -7,7 +7,6 @@ import net.multylands.koth.object.Koth;
 import net.multylands.koth.utils.chat.CC;
 import net.multylands.koth.utils.commands.Command;
 import net.multylands.koth.utils.commands.CommandArgs;
-import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -25,7 +24,7 @@ import java.util.Collections;
 import java.util.UUID;
 
 public class KOTHCommand {
-    GreenKOTH plugin;
+    GreenKOTH plugin = GreenKOTH.get();
     FileConfiguration languageConfig = plugin.languageConfig;
 
     public static KothCreationManager kothCreationManager = new KothCreationManager();
@@ -106,7 +105,6 @@ public class KOTHCommand {
                     player.sendMessage(CC.translate("&cThe koth &f" + koth.getID() + " &cis currently active!."));
                     return;
                 }
-
                 koth.start();
             }
         }

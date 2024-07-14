@@ -2,8 +2,11 @@ package net.multylands.koth.manager;
 
 import net.multylands.koth.GreenKOTH;
 import net.multylands.koth.object.Koth;
+import net.multylands.koth.utils.chat.CC;
+import org.bukkit.Bukkit;
 import org.bukkit.GameEvent;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
@@ -13,8 +16,6 @@ import java.util.List;
 import java.util.Map;
 
 public class KothManager {
-    FileConfiguration areas = GreenKOTH.get().areasConfig;
-
     public List<Koth> koths = new ArrayList<>();
 
     public Koth currentActive;
@@ -30,26 +31,85 @@ public class KothManager {
     }
 
     public void saveKothToFile(Koth k) throws IOException {
+        FileConfiguration areas = GreenKOTH.get().getAreasConfig();
         areas.set("Koths", k.getID());
-        areas.set("Koths." + k.getID() + ".corner1", k.getCorner1());
-        areas.set("Koths." + k.getID() + ".corner2", k.getCorner2());
+        saveLocation1(k);
+        saveLocation2(k);
         areas.set("Koths." + k.getID() + ".capTime", k.getCapTime());
+
         areas.save(GreenKOTH.get().areasFile);
+        koths.add(k);
+    }
+
+    public Location getCorner1FromFile(String kothName) {
+        FileConfiguration areas = GreenKOTH.get().getAreasConfig();
+        double x = areas.getDouble("Koths." + kothName + ".corner1.x");
+        double y = areas.getDouble("Koths." + kothName + ".corner1.y");
+        double z = areas.getDouble("Koths." + kothName + ".corner1.z");
+        String worldName = areas.getString("Koths." + kothName + ".world");
+        World w;
+        if (worldName == null) {
+            w = Bukkit.getWorld("world");
+            Bukkit.getConsoleSender().sendMessage(CC.translate("&cThe koth &f" + kothName + " &cdoes not have a correct world, tried to use the default \"world\""));
+        } else {
+            w = Bukkit.getServer().getWorld(worldName);
+        }
+        return new Location(w, x, y, z);
+    }
+
+    public Location getCorner2FromFile(String kothName) {
+        FileConfiguration areas = GreenKOTH.get().getAreasConfig();
+        double x = areas.getDouble("Koths." + kothName + ".corner2.x");
+        double y = areas.getDouble("Koths." + kothName + ".corner2.y");
+        double z = areas.getDouble("Koths." + kothName + ".corner2.z");
+        String worldName = areas.getString("Koths." + kothName + ".world");
+        World w;
+        if (worldName == null) {
+            w = Bukkit.getWorld("world");
+            Bukkit.getConsoleSender().sendMessage(CC.translate("&cThe koth &f" + kothName + " &cdoes not have a correct world, tried to use the default \"world\""));
+        } else {
+            w = Bukkit.getServer().getWorld(worldName);
+        }
+        return new Location(w, x, y, z);
+    }
+
+    public void saveLocation1(Koth k) {
+        FileConfiguration areas = GreenKOTH.get().getAreasConfig();
+        areas.set("Koths." + k.getID() + ".world", k.getCorner1().getWorld().getName());
+        areas.set("Koths." + k.getID() + ".corner1.x", k.getCorner1().getX());
+        areas.set("Koths." + k.getID() + ".corner1.y", k.getCorner1().getY());
+        areas.set("Koths." + k.getID() + ".corner1.z", k.getCorner1().getZ());
+    }
+
+    public void saveLocation2(Koth k) {
+        FileConfiguration areas = GreenKOTH.get().getAreasConfig();
+        areas.set("Koths." + k.getID() + ".world", k.getCorner2().getWorld().getName());
+        areas.set("Koths." + k.getID() + ".corner2.x", k.getCorner2().getX());
+        areas.set("Koths." + k.getID() + ".corner2.y", k.getCorner2().getY());
+        areas.set("Koths." + k.getID() + ".corner2.z", k.getCorner2().getZ());
     }
 
     public List<Koth> getKothsFromFile() {
-        List<Koth> toReturn = new ArrayList<>();
-        ConfigurationSection section = areas.getConfigurationSection("Koths");
+        FileConfiguration areas = GreenKOTH.get().getAreasConfig();
+        if (areas.getConfigurationSection("Koths") != null) {
+            List<Koth> toReturn = new ArrayList<>();
+            ConfigurationSection section = GreenKOTH.get().areasConfig.getConfigurationSection("Koths");
 
-        for (Map.Entry<String, Object> entry : section.getValues(false).entrySet()) {
-            String id = section.getString(entry.getKey());
-            Location corner1 = section.getLocation(id + ".corner1");
-            Location corner2 = section.getLocation(id + ".corner2");
-            int capTime = section.getInt(id + ".capTime");
+            assert section != null;
+            for (String entry : section.getKeys(false)) {
+                Location corner1 = getCorner1FromFile(entry);
+                Location corner2 = getCorner2FromFile(entry);
+                int capTime = section.getInt(entry + ".capTime");
 
-            toReturn.add(new Koth(corner1, corner2, id, capTime));
+                assert corner1 != null;
+                assert corner2 != null;
+                if (!toReturn.contains(new Koth(corner1, corner2, entry, capTime))) {
+                    toReturn.add(new Koth(corner1, corner2, entry, capTime));
+                }
+            }
+            return toReturn;
         }
-        return toReturn;
+        return null;
     }
 
     public void setActiveKoth(Koth koth) {
