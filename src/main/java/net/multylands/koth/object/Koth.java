@@ -1,12 +1,23 @@
 package net.multylands.koth.object;
 
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.multylands.koth.GreenKOTH;
+import net.multylands.koth.object.events.PlayerStartCaptureKothEvent;
+import net.multylands.koth.object.events.PlayerStopCaptureKothEvent;
+import net.multylands.koth.object.events.PlayerCaptureKothEvent;
 import net.multylands.koth.utils.chat.CC;
+import net.multylands.koth.utils.time.TimeUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Koth {
     public String ID;
@@ -14,6 +25,21 @@ public class Koth {
     public Location corner1;
     public Location corner2;
     public Player king;
+
+    private long autoStartTimer = 0;
+    private long autoEndTimer = 0;
+    private long capTimer = 0;
+
+    private long lastAutoStartDelay = -1;
+    private long lastAutoEndDelay = -1;
+    private long lastCapDelay = -1;
+
+    private int autoStartTimerID = -1;
+    private int autoEndTimerID = -1;
+    private int capTimerID = -1;
+
+    private boolean isBeingCapped = false;
+    private Player cappingPlayer;
 
     public Koth() {
 
@@ -59,7 +85,6 @@ public class Koth {
 
     public void setKing(Player player) {
         this.king = player;
-        CC.broadcast(CC.translate(player.getDisplayName() + " &bis capping koth &f" + ID));
     }
 
     public void setNoKing() {
@@ -91,9 +116,13 @@ public class Koth {
         switch (reason) {
             case "capped": {
                 CC.broadcast("&f&l| &bThe koth " + ID + " has been capped!");
-                assert king != null;
-                CC.broadcast("&f&l| &bCapper: " + king.getName());
+                if (king != null) {
+                    CC.broadcast("&f&l| &bCapper: " + king.getName());
+                } else {
+                    CC.broadcast("&f&l| &bCapper: &ccouln't resolve capper (Contact developer if the error happens again!)");
+                }
                 GreenKOTH.kothManager.setActiveKoth(null);
+                stopCaptureTimer(getKing(), false);
                 this.setNoKing();
                 break;
             }
@@ -105,6 +134,61 @@ public class Koth {
             }
         }
     }
+
+    public void startCaptureTimer(final Player player, boolean broadcast) {
+        PlayerStartCaptureKothEvent event = new PlayerStartCaptureKothEvent(player, this);
+        Bukkit.getPluginManager().callEvent(event);
+
+        if (event.isCancelled()) return;
+
+
+        final int CAPTURE_TIME = getCapTime();
+        lastCapDelay = CAPTURE_TIME;
+
+        isBeingCapped = true;
+        cappingPlayer = player;
+        setKing(player);
+
+        capTimerID = Bukkit.getScheduler().scheduleSyncRepeatingTask(GreenKOTH.get(), new Runnable() {
+            public void run() {
+                capTimer++;
+
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+                        new TextComponent(CC.translate("&cKOTH: &f" + getID() + " &7| &c" +  (CAPTURE_TIME - capTimer) + "s remaining &7|" + " &cCap Time: &f" + CAPTURE_TIME + "s")));
+
+                if (capTimer == capTime / 2) {
+                    CC.broadcast("&f&l| &b" + player.getName() + " &cis capping koth &f" + getID() + " &7(&C" + (CAPTURE_TIME - capTimer) + "s remaining&7)");
+                }
+                if (capTimer == capTime / 4) {
+                    CC.broadcast("&f&l| &b" + player.getName() + " &cis capping koth &f" + getID() + " &7(&C" + (CAPTURE_TIME - capTimer) + "s remaining&7)");
+                }
+
+                if (capTimer >= CAPTURE_TIME) {
+                    stop("capped");
+                }
+            }
+        }, 20, 20);
+
+        if (broadcast) {
+            CC.broadcast("&f&l| &bKoth &2" + getID() +
+                            " &bis now being capped by: &f" + getKing().getName());
+        }
+    }
+
+    public void stopCaptureTimer(Player player, boolean broadcast) {
+        PlayerStopCaptureKothEvent event = new PlayerStopCaptureKothEvent(cappingPlayer, this);
+        Bukkit.getPluginManager().callEvent(event);
+        setNoKing();
+
+        Bukkit.getScheduler().cancelTask(capTimerID);
+        capTimerID = -1;
+        capTimer = 0;
+        lastCapDelay = -1;
+
+        isBeingCapped = false;
+        cappingPlayer = null;
+    }
+
 
     public Location getCenterBlock() {
         double x1 = getCorner1().getBlockX();

@@ -4,8 +4,12 @@ package net.multylands.koth.listeners;
 import net.multylands.koth.GreenKOTH;
 import net.multylands.koth.manager.KothManager;
 import net.multylands.koth.object.Koth;
+import net.multylands.koth.object.LocationPair;
+import net.multylands.koth.object.events.PlayerEnterKothEvent;
+import net.multylands.koth.object.events.PlayerExitKothEvent;
 import net.multylands.koth.utils.LocationUtils;
 import net.multylands.koth.utils.chat.CC;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -13,51 +17,71 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.scheduler.BukkitScheduler;
 
 public class LocationListener implements Listener {
     BukkitScheduler scheduler = GreenKOTH.get().getServer().getScheduler();
 
     @EventHandler
-    public void onAreaEnter(PlayerMoveEvent event) {
+    public void onKothEnter(PlayerMoveEvent e) {
         if (GreenKOTH.kothManager.isThereAKoth()) {
-            KothManager manager = GreenKOTH.kothManager;
-            Koth koth = manager.getCurrentKoth();
-            Player player = event.getPlayer();
-            if (LocationUtils.checkIfIsInBetweenLocations(koth.corner1, koth.corner2, player.getLocation())) {
-                if (koth.isThereAKing()) {
-                    return;
-                }
+            Koth koth = GreenKOTH.kothManager.getCurrentKoth();
+            Player player = e.getPlayer();
 
-                koth.setKing(player);
+            LocationPair pair = new LocationPair(koth.getCorner1(), koth.getCorner2());
 
-                scheduler.runTaskTimer(GreenKOTH.get(), () -> {
-                    if (LocationUtils.checkIfIsInBetweenLocations(koth.corner1, koth.corner2, player.getLocation())) {
-                        player.sendMessage(CC.translate("&bYou capped " + koth.getID() + "!"));
-                        koth.stop("capped");
-                    } else {
-                        koth.setNoKing();
-                    }
-                }, (koth.getCapTime() * 20L), (koth.getCapTime() * 20L));
+            if(LocationUtils.isLocationInside(e.getTo(), pair) && !LocationUtils.isLocationInside(e.getFrom(), pair)) { // Player entered KoTH capture zone
+                PlayerEnterKothEvent event = new PlayerEnterKothEvent(e.getPlayer(), koth, e.getFrom(), e.getTo());
+                event.setCancelled(e.isCancelled());
+
+                Bukkit.getPluginManager().callEvent(event);
+
+                e.setFrom(event.getFrom());
+                e.setTo(event.getTo());
+                e.setCancelled(event.isCancelled());
+            } else if(!LocationUtils.isLocationInside(e.getTo(), pair) && LocationUtils.isLocationInside(e.getFrom(), pair)) { // Player left KoTH capture zone
+                PlayerExitKothEvent event = new PlayerExitKothEvent(e.getPlayer(), koth, e.getFrom(), e.getTo());
+                event.setCancelled(e.isCancelled());
+
+                Bukkit.getPluginManager().callEvent(event);
+
+                e.setFrom(event.getFrom());
+                e.setTo(event.getTo());
+                e.setCancelled(event.isCancelled());
             }
         }
     }
 
-    @EventHandler
-    public void onAreaLeave(PlayerMoveEvent event) {
-        KothManager manager = GreenKOTH.kothManager;
-        if (manager.isThereAKoth()) {
-            Koth koth = manager.getCurrentKoth();
-            Player player = event.getPlayer();
-            if (koth.isThereAKing()) {
-                if (!LocationUtils.checkIfIsInBetweenLocations(koth.corner1, koth.corner2, player.getLocation())) {
-                    if (koth.getKing() == player) {
-                        koth.setNoKing();
-                    }
-                }
+    @EventHandler(ignoreCancelled = true)
+    public void onPlayerTeleport(PlayerTeleportEvent e) {
+        if (GreenKOTH.kothManager.isThereAKoth()) {
+            Koth koth = GreenKOTH.kothManager.getCurrentKoth();
+
+            LocationPair pair = new LocationPair(koth.getCorner1(), koth.getCorner2());
+
+            if (LocationUtils.isLocationInside(e.getTo(), pair) && !LocationUtils.isLocationInside(e.getFrom(), pair)) { // Player entered KoTH capture zone
+                PlayerEnterKothEvent event = new PlayerEnterKothEvent(e.getPlayer(), koth, e.getFrom(), e.getTo());
+                event.setCancelled(e.isCancelled());
+
+                Bukkit.getPluginManager().callEvent(event);
+
+                e.setFrom(event.getFrom());
+                e.setTo(event.getTo());
+                e.setCancelled(event.isCancelled());
+            } else if (!LocationUtils.isLocationInside(e.getTo(), pair) && LocationUtils.isLocationInside(e.getFrom(), pair)) { // Player left KoTH capture zone
+                PlayerExitKothEvent event = new PlayerExitKothEvent(e.getPlayer(), koth, e.getFrom(), e.getTo());
+                event.setCancelled(e.isCancelled());
+
+                Bukkit.getPluginManager().callEvent(event);
+
+                e.setFrom(event.getFrom());
+                e.setTo(event.getTo());
+                e.setCancelled(event.isCancelled());
             }
         }
     }
+
 
     @EventHandler
     public void onDisconnect(PlayerQuitEvent event) {

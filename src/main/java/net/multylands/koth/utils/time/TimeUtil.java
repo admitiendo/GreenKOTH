@@ -25,23 +25,23 @@ public class TimeUtil {
         StringBuilder time = new StringBuilder();
 
         if (years != 0) {
-            time.append(years).append("years ");
+            time.append(years).append("y ");
         }
 
         if (day != 0) {
-            time.append(day).append("days ");
+            time.append(day).append("d ");
         }
 
         if (hours != 0) {
-            time.append(hours).append("hours ");
+            time.append(hours).append("h ");
         }
 
         if (minutes != 0) {
-            time.append(minutes).append("minutes ");
+            time.append(minutes).append("m ");
         }
 
         if (seconds != 0) {
-            time.append(seconds).append("seconds ");
+            time.append(seconds).append("s ");
         }
 
         return time.toString().trim();

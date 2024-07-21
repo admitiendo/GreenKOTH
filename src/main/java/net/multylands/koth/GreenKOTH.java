@@ -2,6 +2,7 @@ package net.multylands.koth;
 
 import net.multylands.koth.commands.KOTHCommand;
 import net.multylands.koth.listeners.KothCreationListener;
+import net.multylands.koth.listeners.KothEventsListener;
 import net.multylands.koth.listeners.LocationListener;
 import net.multylands.koth.manager.KothManager;
 import net.multylands.koth.object.Koth;
@@ -51,6 +52,7 @@ public final class GreenKOTH extends JavaPlugin {
 
         Bukkit.getPluginManager().registerEvents(new LocationListener(), this);
         Bukkit.getPluginManager().registerEvents(new KothCreationListener(), this);
+        Bukkit.getPluginManager().registerEvents(new KothEventsListener(), this);
 
         Bukkit.getConsoleSender().sendMessage(CC.translate("&bThe koth list is loading. please wait."));
         scheduler.runTaskLater(this, new Runnable() {
@@ -66,7 +68,7 @@ public final class GreenKOTH extends JavaPlugin {
                     Bukkit.getConsoleSender().sendMessage(CC.translate("&cCouldn't load koths, make sure to create at least 1 koth."));
                 }
             }
-        }, 1000);
+        }, 200);
     }
 
     @Override
