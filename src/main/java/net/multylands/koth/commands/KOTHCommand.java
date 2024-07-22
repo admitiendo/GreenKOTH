@@ -7,6 +7,7 @@ import net.multylands.koth.object.Koth;
 import net.multylands.koth.utils.chat.CC;
 import net.multylands.koth.utils.commands.Command;
 import net.multylands.koth.utils.commands.CommandArgs;
+import net.multylands.koth.utils.time.TimeUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -66,7 +67,14 @@ public class KOTHCommand {
     public void kothList(CommandArgs args) {
         Player player = args.getPlayer();
 
-
+        player.sendMessage(CC.translate("&bCurrent koths list:"));
+        for (Koth koth : GreenKOTH.kothManager.koths) {
+            player.sendMessage(CC.translate("&f&l| &B" + koth.getID()
+                    + " &7(&c" +
+                    koth.getCenterBlock().getBlockX() + ", " +
+                    koth.getCenterBlock().getBlockY() + ", " +
+                    koth.getCenterBlock().getBlockZ() + "&7) &7&l| &fCapTime: &c" + TimeUtil.hhmmssFromMillis(koth.getCapTime() * 1000L)));
+        }
     }
 
     @Command(name = "kothdelete",

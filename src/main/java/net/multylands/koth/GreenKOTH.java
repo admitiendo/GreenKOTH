@@ -68,7 +68,7 @@ public final class GreenKOTH extends JavaPlugin {
                     Bukkit.getConsoleSender().sendMessage(CC.translate("&cCouldn't load koths, make sure to create at least 1 koth."));
                 }
             }
-        }, 200);
+        }, 80);
     }
 
     @Override

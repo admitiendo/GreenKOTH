@@ -82,6 +82,7 @@ public class KothCreationListener implements Listener {
 
                         player.getWorld().playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 2.0f, 2.0f);
                         koth.setCapTime(time);
+                        KOTHCommand.kothCreationManager.kothNameSetted.remove(player);
                         player.sendMessage(CC.translate("&bThe KOTH &f" + koth.getID() + " &bhas been successfully created!"));
                         GreenKOTH.kothManager.saveKothToFile(koth.build());
                     } else {
