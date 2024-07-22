@@ -40,7 +40,7 @@ public class KothEventsListener implements Listener {
         Koth koth = e.getKoth();
 
         if (koth.isThereAKing() && koth.getKing().equals(player)) {
-             koth.stopCaptureTimer(player, true);
+             koth.stopCaptureTimer();
         }
     }
 
