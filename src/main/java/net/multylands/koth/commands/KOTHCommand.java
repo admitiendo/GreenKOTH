@@ -18,6 +18,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.checkerframework.checker.units.qual.K;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,6 +39,58 @@ public class KOTHCommand {
         for (String msg : languageConfig.getStringList("admin.help")) {
             args.getSender().sendMessage(CC.translate(msg));
         }
+    }
+
+    @Command(name = "kothstop",
+            permission = "greenkoth.admin",
+            description = "GreenKoth stop koth command",
+            inGameOnly = true,
+            usage = "/koth stop")
+    public void stopCommand(CommandArgs args) {
+        Player player = args.getPlayer();
+        if (!GreenKOTH.kothManager.isThereAKoth()) {
+            return;
+        }
+
+        Koth koth = GreenKOTH.current;
+
+        koth.stop("command");
+        player.sendMessage(CC.translate("&cStopped current koth."));
+    }
+
+    @Command(name = "koth.list",
+            permission = "greenkoth.admin",
+            description = "GreenKoth list command",
+            inGameOnly = true,
+            usage = "/koth list")
+    public void kothList(CommandArgs args) {
+        Player player = args.getPlayer();
+
+
+    }
+
+    @Command(name = "kothdelete",
+            permission = "greenkoth.admin",
+            description = "GreenKoth delete command",
+            inGameOnly = true,
+            usage = "/kothdelete (Koth)")
+    public void kothDelete(CommandArgs args) throws IOException {
+        Player player = args.getPlayer();
+        String kothName = args.getArgs(0);
+
+        if (GreenKOTH.kothManager.getKothByID(kothName) != null) {
+            if (!GreenKOTH.kothManager.isThereAKoth() && GreenKOTH.current != GreenKOTH.kothManager.getKothByID(kothName)) {
+                if (GreenKOTH.kothManager.deleteKothFromFile(kothName)) {
+                    player.sendMessage(CC.translate("&bSuccessfully deleted koth &f" + kothName));
+                } else {
+                    player.sendMessage(CC.translate("&cKoth &f" + kothName+ " &cdoes not exists."));
+                }
+            } else {
+                player.sendMessage(CC.translate("&bCouldn't delete koth, please stop the running koth and try again."));
+            }
+        }
+
+
     }
 
     @Command(name = "koth.create",

@@ -97,6 +97,16 @@ public class KothManager {
         return commands;
     }
 
+    public boolean deleteKothFromFile(String kothName) throws IOException {
+        FileConfiguration areas = GreenKOTH.get().getAreasConfig();
+        if (areas.get("Koths." + kothName) != null) {
+            areas.set("Koths." + kothName, "");
+            areas.save(GreenKOTH.get().areasFile);
+            return true;
+        }
+        return false;
+    }
+
     public List<Koth> getKothsFromFile() {
         FileConfiguration areas = GreenKOTH.get().getAreasConfig();
         if (areas.getConfigurationSection("Koths") != null) {

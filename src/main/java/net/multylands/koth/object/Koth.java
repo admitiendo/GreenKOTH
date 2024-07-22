@@ -125,13 +125,14 @@ public class Koth {
                 Bukkit.getPluginManager().callEvent(captureKothEvent);
 
                 GreenKOTH.kothManager.setActiveKoth(null);
-                stopCaptureTimer(getKing(), false);
+                stopCaptureTimer();
                 this.setNoKing();
                 break;
             }
             case "command": {
                 CC.broadcast("&f&l| &bThe koth " + ID + " has been stopped!");
                 GreenKOTH.kothManager.setActiveKoth(null);
+                stopCaptureTimer();
                 this.setNoKing();
                 break;
             }
@@ -179,7 +180,7 @@ public class Koth {
         }
     }
 
-    public void stopCaptureTimer(Player player, boolean broadcast) {
+    public void stopCaptureTimer() {
         PlayerStopCaptureKothEvent event = new PlayerStopCaptureKothEvent(cappingPlayer, this);
         Bukkit.getPluginManager().callEvent(event);
         setNoKing();
