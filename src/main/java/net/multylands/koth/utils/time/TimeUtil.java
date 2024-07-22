@@ -1,10 +1,16 @@
 package net.multylands.koth.utils.time;
 
-/**
- * Created by SofDev w/Apreciada
- * 14/06/2022 - 02:52:27
- */
+import java.util.concurrent.TimeUnit;
+
 public class TimeUtil {
+
+    public static String hhmmssFromMillis(long millis) {
+        return String.format("%02d:%02d:%02d",
+                TimeUnit.MILLISECONDS.toHours(millis),
+                TimeUnit.MILLISECONDS.toMinutes(millis) % TimeUnit.HOURS.toMinutes(1),
+                TimeUnit.MILLISECONDS.toSeconds(millis) % TimeUnit.MINUTES.toSeconds(1));
+    }
+
     public static String formatTimeMillis(long millis) {
         long seconds = millis / 1000L;
 

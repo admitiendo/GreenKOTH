@@ -16,53 +16,34 @@ public class PlayerCaptureKothEvent extends PlayerKothEvent implements Cancellab
 	
 	private boolean cancelled = false;
 	
-	private List<ItemStack> loot;
+	private List<String> commands;
 	private Map<String, Double> nonItemLoot;
 	
 	
-	public PlayerCaptureKothEvent(Player player, Koth koth, List<ItemStack> loot, Map<String, Double> nonItemLoot) {
+	public PlayerCaptureKothEvent(Player player, Koth koth, List<String> commands) {
 		super(player, koth);
 		
-	    this.loot = loot;
-	    this.nonItemLoot = nonItemLoot;
+	    this.commands = commands;
 	}
 	
 	
-	public List<ItemStack> getLoot() {
-	    return Collections.unmodifiableList(loot);
+		public List<String> getCommands() {
+	    return Collections.unmodifiableList(commands);
+	}
+
+	public void setCommands(List<String> commands) {
+	    this.commands = commands;
+	}
+
+	public void addCommand(String cmd) {
+		commands.add(cmd);
+	}
+
+	public void removeLoot(String cmd) {
+		commands.remove(cmd);
 	}
 	
-	public Map<String, Double> getNonItemLoot() {
-	    return Collections.unmodifiableMap(nonItemLoot);
-	}
-	
-	
-	public void setLoot(List<ItemStack> loot) {
-	    this.loot = loot;
-	}
-	
-	public void addLoot(ItemStack itemStack) {
-	    loot.add(itemStack);
-	}
-	
-	public void removeLoot(ItemStack itemStack) {
-	    loot.remove(itemStack);
-	}
-	
-	
-	public void setNonItemLoot(Map<String, Double> nonItemLoot) {
-	    this.nonItemLoot = nonItemLoot;
-	}
-	
-	public void addLoot(String name, double amount) {
-	    nonItemLoot.put(name, amount);
-	}
-	
-	public void removeLoot(String name) {
-	    nonItemLoot.remove(name);
-	}
-	
-	
+
 	public boolean isCancelled() {
 		return cancelled;
 	}

@@ -116,11 +116,14 @@ public class Koth {
         switch (reason) {
             case "capped": {
                 CC.broadcast("&f&l| &bThe koth " + ID + " has been capped!");
-                if (king != null) {
-                    CC.broadcast("&f&l| &bCapper: " + king.getName());
+                if (getKing() != null) {
+                    CC.broadcast("&f&l| &bCapper: " + getKing().getName());
                 } else {
                     CC.broadcast("&f&l| &bCapper: &ccouln't resolve capper (Contact developer if the error happens again!)");
                 }
+                PlayerCaptureKothEvent captureKothEvent = new PlayerCaptureKothEvent(getKing(), this, GreenKOTH.kothManager.getCommands());
+                Bukkit.getPluginManager().callEvent(captureKothEvent);
+
                 GreenKOTH.kothManager.setActiveKoth(null);
                 stopCaptureTimer(getKing(), false);
                 this.setNoKing();
@@ -152,15 +155,16 @@ public class Koth {
         capTimerID = Bukkit.getScheduler().scheduleSyncRepeatingTask(GreenKOTH.get(), new Runnable() {
             public void run() {
                 capTimer++;
+                long t = (CAPTURE_TIME - capTime);
 
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                        new TextComponent(CC.translate("&cKOTH: &f" + getID() + " &7| &c" +  (CAPTURE_TIME - capTimer) + "s remaining &7|" + " &cCap Time: &f" + CAPTURE_TIME + "s")));
+                        new TextComponent(CC.translate("&cKOTH: &f" + getID() + " &7| &c" +  TimeUtil.hhmmssFromMillis(t) + "s remaining &7|" + " &cCap Time: &f" + TimeUtil.hhmmssFromMillis(getCapTime()) + "s")));
 
                 if (capTimer == capTime / 2) {
-                    CC.broadcast("&f&l| &b" + player.getName() + " &cis capping koth &f" + getID() + " &7(&C" + (CAPTURE_TIME - capTimer) + "s remaining&7)");
+                    CC.broadcast("&f&l| &b" + player.getName() + " &cis capping koth &f" + getID() + " &7(&C" + TimeUtil.hhmmssFromMillis(t) + "s remaining&7)");
                 }
                 if (capTimer == capTime / 4) {
-                    CC.broadcast("&f&l| &b" + player.getName() + " &cis capping koth &f" + getID() + " &7(&C" + (CAPTURE_TIME - capTimer) + "s remaining&7)");
+                    CC.broadcast("&f&l| &b" + player.getName() + " &cis capping koth &f" + getID() + " &7(&C" + TimeUtil.hhmmssFromMillis(t) + "s remaining&7)");
                 }
 
                 if (capTimer >= CAPTURE_TIME) {

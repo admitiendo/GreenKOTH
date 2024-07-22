@@ -89,6 +89,14 @@ public class KothManager {
         areas.set("Koths." + k.getID() + ".corner2.z", k.getCorner2().getZ());
     }
 
+    public List<String> getCommands() {
+        ArrayList<String> commands = new ArrayList<>();
+        for (String s : GreenKOTH.get().getConfig().getStringList("reward-commands")) {
+            commands.add(s);
+        }
+        return commands;
+    }
+
     public List<Koth> getKothsFromFile() {
         FileConfiguration areas = GreenKOTH.get().getAreasConfig();
         if (areas.getConfigurationSection("Koths") != null) {

@@ -1,5 +1,6 @@
 package net.multylands.koth.listeners;
 
+import net.multylands.koth.GreenKOTH;
 import net.multylands.koth.object.Koth;
 import net.multylands.koth.object.events.PlayerCaptureKothEvent;
 import net.multylands.koth.object.events.PlayerEnterKothEvent;
@@ -48,11 +49,9 @@ public class KothEventsListener implements Listener {
         Player player = e.getPlayer();
         Koth koth = e.getKoth();
 
-        List<ItemStack> loot = new ArrayList<ItemStack>();
-        Map<String, Double> nonItemLoot = new HashMap<String, Double>();
+        for (String cmd : GreenKOTH.kothManager.getCommands()) {
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd.replace("%player%", koth.getKing().getName()));
+        }
 
-
-        e.setLoot(loot);
-        e.setNonItemLoot(nonItemLoot);
     }
 }
