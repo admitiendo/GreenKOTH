@@ -32,7 +32,7 @@ public class KothManager {
 
     public void saveKothToFile(Koth k) throws IOException {
         FileConfiguration areas = GreenKOTH.get().getAreasConfig();
-        areas.set("Koths", k.getID());
+        areas.set("Koths." + k.getID(), "");
         saveLocation1(k);
         saveLocation2(k);
         areas.set("Koths." + k.getID() + ".capTime", k.getCapTime());
